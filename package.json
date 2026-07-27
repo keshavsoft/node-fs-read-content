@@ -1,0 +1,35 @@
+{
+  "name": "node-fs-read-content",
+  "version": "1.2.1",
+  "description": "A high-performance pattern collector and ESM import statement analyzer.",
+  "keywords": [
+    "pattern",
+    "regex",
+    "parser",
+    "import",
+    "analyzer",
+    "esm",
+    "extractor"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "bin/",
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "homepage": "https://github.com/keshavsoft/pattern-collector#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keshavsoft/node-fs-read-content"
+  },
+  "bugs": {
+    "url": "https://github.com/keshavsoft/node-fs-read-content/issues"
+  },
+  "devDependencies": {
+    "node-fs-recursive": "^1.4.4"
+  }
+}
