@@ -1,15 +1,15 @@
 {
   "name": "node-fs-read-content",
-  "version": "1.2.2",
-  "description": "A high-performance pattern collector and ESM import statement analyzer.",
+  "version": "1.3.1",
+  "description": "A lightweight ESM utility to read multiple file contents into structured absolute-path/text records.",
   "keywords": [
-    "pattern",
-    "regex",
-    "parser",
-    "import",
-    "analyzer",
+    "fs",
+    "read",
+    "content",
+    "bulk",
+    "files",
     "esm",
-    "extractor"
+    "helper"
   ],
   "type": "module",
   "exports": {
