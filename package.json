@@ -1,6 +1,6 @@
 {
   "name": "node-fs-read-content",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "A high-performance pattern collector and ESM import statement analyzer.",
   "keywords": [
     "pattern",

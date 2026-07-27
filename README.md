@@ -1,42 +1,65 @@
-# Dependency Propagation Troubleshooting
+# node-fs-read-content
 
-This repository documents and supports the dependency propagation flow used by the KeshavSoft package chain.
+`node-fs-read-content` is a small ESM helper that turns a list of file paths into a list of file records with their full path and text content.
 
-The current investigation focuses on why publishing `express-check-any-for-import` version `1.4.4` did not trigger the downstream `Update dependency` workflow in `express-fix-any-js`, even though the publishing workflow itself appeared to succeed.
+The package entry point is `index.js`. It finds the latest implementation under `bin/` and forwards the caller's `filePaths` as `inFilePaths` to that version.
 
-## What Happened
+## Current Story
 
-The `Publish Package to npmjs with Notification` workflow completed successfully:
+The current version is `bin/v2/index.js`.
 
-* The `publish` job deployed version `1.4.4` to npm.
-* The `notify-dependents` job also finished green.
+`bin/v2/index.js` keeps the job intentionally direct:
 
-However, the dependent repository did not receive or act on the expected `repository_dispatch` event.
+1. Receive `inFilePaths`.
+2. Read each file with `fs.readFileSync(path, "utf8")`.
+3. Return an array of objects shaped like:
 
-## Root Cause
+```js
+{
+  fileFullPath: element,
+  fileContent
+}
+```
 
-The notification workflow used `curl` to call the GitHub Repository Dispatches API. By default, `curl` can exit successfully even when GitHub returns an HTTP error such as `401 Unauthorized` or `404 Not Found`.
+That makes this package useful when another tool already knows which files are important and only needs their contents collected in one predictable structure.
 
-That meant the GitHub Actions job could look successful while the actual dispatch request had failed.
+## Usage Shape
 
-## Visibility Improvement
+```js
+import readContent from "node-fs-read-content";
 
-The notification workflows were updated to use `curl -i`, so GitHub Actions logs now show the HTTP status, response headers, and any JSON error body returned by GitHub.
+const filesWithContent = readContent({
+  filePaths: [
+    "/full/path/to/api/v1/bills/end-points.js",
+    "/full/path/to/api/v1/doctors/end-points.js"
+  ]
+});
+```
 
-This change was applied across:
+Each result item contains:
 
-* `express-check-any-for-import/.github/workflows/notify-dependents.yml`
-* `express-fix-any-js/.github/workflows/notify-dependents.yml`
-* `express-fix-endpoints-get-js/.github/workflows/notify-dependents.yml`
+* `fileFullPath`: the original file path.
+* `fileContent`: the UTF-8 text read from that file.
 
-## How To Verify
+## Test V2
 
-Check the `REPO_DISPATCH_TOKEN` secret in the source repository and confirm that it is a valid GitHub PAT with write access to the destination repository.
+`test/v2/test.js` shows the intended flow.
 
-Then rerun the publish workflow and inspect the `notify-dependents` job logs:
+It uses `node-fs-recursive` to scan the `test/v2/api` fixture folder for files named `end-points.js`, passes those paths into the package entry point, and logs the collected file-content records.
 
-* `HTTP/2 204` means the dispatch succeeded.
-* `HTTP/2 401` means the token is invalid, expired, or unauthorized.
-* `HTTP/2 404` usually means the token cannot access the destination repository or the target repository path is wrong.
+After dependencies are installed, run it from the package folder with:
 
-For the full walkthrough, see [propagation-troubleshooting.md](propagation-troubleshooting.md).
+```bash
+node test/v2/test.js
+```
+
+Or move into the v2 test folder and run the local test file directly:
+
+```bash
+cd test/v2
+node test
+```
+
+The console output is an array of collected file records. Each record shows the matched `end-points.js` file path in `fileFullPath` and the complete JavaScript source text in `fileContent`.
+
+The test fixture includes multiple API resource folders, so the v2 path proves the package can read every matched `end-points.js` file and return their contents through the same public `index.js` API.
